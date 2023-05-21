@@ -4,8 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
-const passport = require('passport');
-const authenticate = require('./authentication');
+const passport = require("passport");
+const authenticate = require("./authorization");
 
 const logger = require("./logger");
 const pino = require("pino-http")({
@@ -32,7 +32,7 @@ app.use(compression());
 passport.use(authenticate.strategy());
 app.use(passport.initialize());
 
-app.use('/', require('./routes'));
+app.use("/", require("./routes"));
 
 // Add 404 middleware to handle any requests for resources that can't be found
 app.use((req, res) => {
