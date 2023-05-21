@@ -37,7 +37,7 @@ app.use("/", require("./routes"));
 
 // Add 404 middleware to handle any requests for resources that can't be found
 app.use((req, res) => {
-  res.send(createErrorResponse(404, "not found"));
+  res.status(404).send(createErrorResponse(404, "not found"));
 });
 
 // Add error-handling middleware to deal with anything else
@@ -53,7 +53,7 @@ app.use((err, req, res, next) => {
     logger.error({ err }, `Error processing request`);
   }
 
-  res.send(createErrorResponse(status, message));
+  res.status(status).send(createErrorResponse(status, message));
 });
 
 // Export our `app` so we can access it in server.js
