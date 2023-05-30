@@ -85,7 +85,7 @@ const convert = (data, fromContentType, toExtension) => {
       data,
     };
   }
-  if (!validExtensions.hasOwnProperty(toExtension)) {
+  if (!validExtensions.prototype.hasOwnProperty.call(toExtension)) {
     return {
       success: false,
       data,
