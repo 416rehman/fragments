@@ -29,6 +29,33 @@ app.use(cors());
 // Use gzip/deflate compression middleware
 app.use(compression());
 
+// Middleware to handle raw text
+app.use(express.text({ type: "*/*" }));
+
+// Middleware to handle raw images
+app.use((req, res, next) => {
+  if (req.is("image/*")) {
+    const contentLength = parseInt(req.header("Content-Length"));
+    if (contentLength > 10 * 1024 * 1024) {
+      // 10MB limit
+      return res
+        .status(413)
+        .send(createErrorResponse(413, "Payload Too Large"));
+    }
+    req.setEncoding("binary");
+    req.data = "";
+    req.on("data", (chunk) => {
+      req.data += chunk;
+    });
+    req.on("end", () => {
+      req.body = Buffer.from(req.data, "binary");
+      next();
+    });
+  } else {
+    next();
+  }
+});
+
 // Set up our passport authentication middleware
 passport.use(authenticate.strategy());
 app.use(passport.initialize());
@@ -37,7 +64,7 @@ app.use("/", require("./routes"));
 
 // Add 404 middleware to handle any requests for resources that can't be found
 app.use((req, res) => {
-  res.status(404).send(createErrorResponse(404, "not found"));
+  res.status(404).send(createErrorResponse(404, "Resource not found"));
 });
 
 // Add error-handling middleware to deal with anything else
