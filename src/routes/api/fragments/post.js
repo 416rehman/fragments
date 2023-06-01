@@ -19,16 +19,6 @@ module.exports = (req, res) => {
     res.status(400).send(createErrorResponse(400, "Missing body"));
   }
 
-  if (blob.length < 1) {
-    res.status(400).send(createErrorResponse(400, "Empty body"));
-  }
-
-  if (!type) {
-    res
-      .status(400)
-      .send(createErrorResponse(400, "Missing Content-Type header"));
-  }
-
   if (!isContentTypeSupported(type)) {
     const validTypes = Object.keys(conversionTable).join(", ");
     res
