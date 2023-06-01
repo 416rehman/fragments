@@ -78,6 +78,14 @@ const isContentTypeSupported = (contentType) => {
 };
 
 const convert = (data, fromContentType, toExtension) => {
+  const isValidExtension = getContentTypeForExtension(toExtension);
+  if (!isValidExtension) {
+    return {
+      success: false,
+      data,
+    };
+  }
+
   const validExtensions = conversionTable[fromContentType];
   if (!validExtensions) {
     return {
@@ -85,7 +93,7 @@ const convert = (data, fromContentType, toExtension) => {
       data,
     };
   }
-  if (!validExtensions.prototype.hasOwnProperty.call(toExtension)) {
+  if (!Object.prototype.hasOwnProperty.call(validExtensions, toExtension)) {
     return {
       success: false,
       data,
