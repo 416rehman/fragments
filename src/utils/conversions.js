@@ -4,91 +4,91 @@ const striptags = require("striptags");
 const sharp = require("sharp");
 
 const markdownToHtml = (markdown) => {
-  return marked.parse(markdown);
+    return marked.parse(markdown, {headerIds: false, mangle: false});
 };
 
 const markdownToText = (markdown) => {
-  const html = markdownToHtml(markdown);
-  return htmlToText(html);
+    const html = markdownToHtml(markdown);
+    return htmlToText(html);
 };
 
 const htmlToMarkdown = (html) => {
-  const turndownService = new turndown();
-  return turndownService.turndown(html);
+    const turndownService = new turndown();
+    return turndownService.turndown(html);
 };
 
 const htmlToText = (html) => {
-  return striptags(html);
+    return striptags(html);
 };
 
 const jsonToText = (json) => {
-  return JSON.stringify(json);
+    return JSON.stringify(json);
 };
 
 const pngToJpeg = (png) => {
-  return sharp(png).jpeg().toBuffer();
+    return sharp(png).jpeg().toBuffer();
 };
 
 const pngToWebp = (png) => {
-  return sharp(png).webp().toBuffer();
+    return sharp(png).webp().toBuffer();
 };
 
 const pngToGif = (png) => {
-  return sharp(png).gif().toBuffer();
+    return sharp(png).gif().toBuffer();
 };
 
 const jpegToPng = (jpeg) => {
-  return sharp(jpeg).png().toBuffer();
+    return sharp(jpeg).png().toBuffer();
 };
 
 const jpegToWebp = (jpeg) => {
-  return sharp(jpeg).webp().toBuffer();
+    return sharp(jpeg).webp().toBuffer();
 };
 
 const jpegToGif = (jpeg) => {
-  return sharp(jpeg).gif().toBuffer();
+    return sharp(jpeg).gif().toBuffer();
 };
 
 const webpToPng = (webp) => {
-  return sharp(webp).png().toBuffer();
+    return sharp(webp).png().toBuffer();
 };
 
 const webpToJpeg = (webp) => {
-  return sharp(webp).jpeg().toBuffer();
+    return sharp(webp).jpeg().toBuffer();
 };
 
 const webpToGif = (webp) => {
-  return sharp(webp).gif().toBuffer();
+    return sharp(webp).gif().toBuffer();
 };
 
 const gifToPng = (gif) => {
-  return sharp(gif).png().toBuffer();
+    return sharp(gif).png().toBuffer();
 };
 
 const gifToJpeg = (gif) => {
-  return sharp(gif).jpeg().toBuffer();
+    return sharp(gif).jpeg().toBuffer();
 };
 
 const gifToWebp = (gif) => {
-  return sharp(gif).webp().toBuffer();
+    return sharp(gif).webp().toBuffer();
 };
 
 module.exports = {
-  markdownToHtml,
-  markdownToText,
-  htmlToMarkdown,
-  htmlToText,
-  jsonToText,
-  pngToJpeg,
-  pngToWebp,
-  pngToGif,
-  jpegToPng,
-  jpegToWebp,
-  jpegToGif,
-  webpToPng,
-  webpToJpeg,
-  webpToGif,
-  gifToPng,
-  gifToJpeg,
-  gifToWebp,
+    markdownToHtml,
+    markdownToText,
+    htmlToMarkdown,
+    htmlToText,
+    jsonToText,
+    pngToJpeg,
+    pngToWebp,
+    pngToGif,
+    jpegToPng,
+    jpegToWebp,
+    jpegToGif,
+    webpToPng,
+    webpToJpeg,
+    webpToGif,
+    gifToPng,
+    gifToJpeg,
+    gifToWebp,
 };
