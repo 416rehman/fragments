@@ -33,9 +33,7 @@ module.exports = (req, res) => {
   if (!blob) {
     res.status(400).send(createErrorResponse(400, "Missing body"));
   }
-  if (blob.length < 1) {
-    res.status(400).send(createErrorResponse(400, "Empty body"));
-  }
+
   const updatedFragment = db.update(id, req.user, blob);
   if (!updatedFragment) {
     //Server error
