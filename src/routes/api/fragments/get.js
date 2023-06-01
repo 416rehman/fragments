@@ -34,11 +34,9 @@ module.exports.getFragment = (req, res) => {
 
   const fragment = db.get(id, req.user, false);
   if (!fragment) {
-    res.status(404).send({ error: "Fragment not found" });
+    res.status(404).send(createErrorResponse(404, "Fragment not found"));
     return;
   }
-
-  res.set("Content-Type", fragment.metadata.type);
 
   if (extension) {
     const converted = convert(fragment.data, fragment.metadata.type, extension);
@@ -51,9 +49,10 @@ module.exports.getFragment = (req, res) => {
         .send(
           createErrorResponse(
             415,
-            "Unsupported conversion." + validConversions
-              ? " Valid conversions are: " + validConversions.join(", ")
-              : ""
+            "Unsupported conversion." +
+              (validConversions
+                ? " Valid conversions are: " + validConversions.join(", ")
+                : "")
           )
         );
       return;
@@ -64,6 +63,8 @@ module.exports.getFragment = (req, res) => {
       "Content-Type",
       getContentTypeForExtension(extension) || fragment.metadata.type
     );
+  } else {
+    res.set("Content-Type", fragment.metadata.type);
   }
 
   res.send(fragment.data);
@@ -73,7 +74,7 @@ module.exports.getFragmentInfo = (req, res) => {
   const id = req.params.id;
   const fragment = db.get(id, req.user, true);
   if (!fragment) {
-    res.status(404).send({ error: "Fragment not found" });
+    res.status(404).send(createErrorResponse(404, "Fragment not found"));
     return;
   }
 
