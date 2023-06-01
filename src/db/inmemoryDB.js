@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const logger = require("../logger");
 
 /**
  * This is an in-memory database that will be used for assignment 1. I am not using a real database as the assignment does not mention it.
@@ -165,7 +166,7 @@ class FragmentsDatabase {
       }
     );
     if (indexOfMetadata < 0) {
-      console.log("Metadata not found");
+      logger.error("Metadata not found");
       return false;
     }
 
@@ -174,7 +175,7 @@ class FragmentsDatabase {
       return object.id === id;
     });
     if (indexOfBlob < 0) {
-      console.log("Blob not found");
+      logger.error("Blob not found");
       return false;
     }
 
