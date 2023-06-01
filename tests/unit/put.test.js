@@ -11,7 +11,7 @@ const authEmail = "user1@email.com";
 const authPassword = "password1";
 const fragmentBody = "sample body";
 const fragmentType = "text/markdown";
-const ownedFragment = db.create(fragmentBody, fragmentType, "user1@email.com");
+const ownedFragment = db.create(fragmentBody, fragmentType, authEmail);
 const otherFragment = db.create(fragmentBody, fragmentType, "user2@email.com");
 
 const updatedFragmentBody = "updated body";
