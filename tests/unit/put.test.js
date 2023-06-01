@@ -2,7 +2,6 @@ const request = require("supertest");
 const app = require("../../src/app");
 const db = require("../../src/db/inmemoryDB.js");
 const {
-  createSuccessResponse,
   createErrorResponse,
 } = require("../../src/response");
 
@@ -67,7 +66,7 @@ describe("PUT /v1/fragments/:id", () => {
     // https://stackoverflow.com/questions/50091438/jest-how-to-mock-one-specific-method-of-a-class
     const spy = jest
       .spyOn(db, "update")
-      .mockImplementation((id, user, blob) => null);
+      .mockImplementation(() => null);
     const res = await request(app)
       .put(`/v1/fragments/${ownedFragment.id}`)
       .auth(authEmail, authPassword)
