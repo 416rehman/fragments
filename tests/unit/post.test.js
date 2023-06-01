@@ -1,6 +1,9 @@
 const request = require("supertest");
 const app = require("../../src/app");
 
+const authEmail = "user1@email.com";
+const authPassword = "password1";
+
 describe("POST /v1/fragments", () => {
   // Invalid authentication
   test("should return 401 if authentication is invalid", () =>
@@ -14,7 +17,7 @@ describe("POST /v1/fragments", () => {
   test("should return 400 if request body is missing", () =>
     request(app)
       .post("/v1/fragments")
-      .auth("user1@email.com", "password1")
+      .auth(authEmail, authPassword)
       .set("Content-Type", "text/plain")
       .expect(400)
       .then((response) => {
@@ -27,7 +30,7 @@ describe("POST /v1/fragments", () => {
   test("should return 415 if Content-Type is unsupported", () =>
     request(app)
       .post("/v1/fragments")
-      .auth("user1@email.com", "password1")
+      .auth(authEmail, authPassword)
       .set("Content-Type", "unsupported/type")
       .send("sample body")
       .expect(415)
@@ -46,7 +49,7 @@ describe("POST /v1/fragments", () => {
 
     request(app)
       .post("/v1/fragments")
-      .auth("user1@email.com", "password1")
+      .auth(authEmail, authPassword)
       .set("Content-Type", type)
       .send(body)
       .expect(201)
@@ -62,7 +65,7 @@ describe("POST /v1/fragments", () => {
   test("should return 413 if body size is greater than 10MB", () =>
     request(app)
       .post("/v1/fragments")
-      .auth("user1@email.com", "password1")
+      .auth(authEmail, authPassword)
       .set("Content-Type", "text/plain")
       .send("sample body".repeat(1000000))
       .expect(413));
