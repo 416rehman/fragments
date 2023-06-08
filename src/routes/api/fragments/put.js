@@ -29,12 +29,12 @@ module.exports = (req, res) => {
     return;
   }
 
-  const blob = req.body;
-  if (!blob) {
+  const binaryData = req.body;
+  if (!binaryData || binaryData.length === 0) {
     res.status(400).send(createErrorResponse(400, "Missing body"));
   }
 
-  const updatedFragment = db.update(id, req.user, blob);
+  const updatedFragment = db.update(id, req.user, binaryData);
   if (!updatedFragment) {
     //Server error
     res.status(500).send(createErrorResponse(500, "Failed to update fragment"));

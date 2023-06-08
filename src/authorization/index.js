@@ -7,7 +7,7 @@ if (process.env.AWS_COGNITO_POOL_ID && process.env.AWS_COGNITO_CLIENT_ID) {
   logger.info("Using Amazon Cognito for authorization");
 }
 // Also allow for an .htpasswd file to be used, but not in production
-else if (process.env.HTPASSWD_FILE && process.env.NODE_ENV === "development") {
+else if (process.env.HTPASSWD_FILE && process.env.NODE_ENV !== "production") {
   module.exports = require("./basic-auth");
   logger.info("Using .htpasswd file for authorization");
 }

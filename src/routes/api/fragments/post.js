@@ -17,7 +17,7 @@ module.exports = (req, res) => {
 
   console.log('POST /v1/fragments', {type, binaryData});
 
-  if (!binaryData) {
+  if (!binaryData || binaryData.length === 0) {
     res.status(400).send(createErrorResponse(400, "Missing body"));
   }
 
