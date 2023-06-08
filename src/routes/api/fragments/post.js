@@ -13,9 +13,11 @@ const {
 
 module.exports = (req, res) => {
   const type = req.headers["content-type"];
-  const blob = req.body;
+  const binaryData = req.body;
 
-  if (!blob) {
+  console.log('POST /v1/fragments', {type, binaryData});
+
+  if (!binaryData) {
     res.status(400).send(createErrorResponse(400, "Missing body"));
   }
 
@@ -31,7 +33,7 @@ module.exports = (req, res) => {
       );
   }
 
-  const fragment = db.create(blob, type, req.user);
+  const fragment = db.create(binaryData, type, req.user);
   if (!fragment) {
     //Server error
     res.status(500).send(createErrorResponse(500, "Failed to create fragment"));

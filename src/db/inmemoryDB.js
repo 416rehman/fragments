@@ -23,7 +23,7 @@ class FragmentsDatabase {
       created: new Date().toISOString(),
       updated: new Date().toISOString(),
       type: type,
-      size: blob.length,
+      size: blob.length || 0,
     };
 
     FragmentsDatabase.metadataList.push(metadata);

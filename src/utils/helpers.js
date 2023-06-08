@@ -65,6 +65,10 @@ function getValidConversionsForContentType(contentType) {
 }
 
 function getContentTypeForExtension(extension) {
+  if (!extension) {
+    return null;
+  }
+
   for (const [contentType, extensions] of Object.entries(conversionTable)) {
     if (Object.keys(extensions)[0] === extension) {
       return contentType;

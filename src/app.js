@@ -5,18 +5,17 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const passport = require("passport");
+const { createErrorResponse } = require("./response");
+const bodyParser = require('body-parser');
+const logger = require("./logger");
 const authenticate = require("./authorization");
 
-const logger = require("./logger");
-const { createErrorResponse } = require("./response");
+// Create an express app instance we can use to attach middleware and HTTP routes
+const app = express();
 const pino = require("pino-http")({
   // Use our default logger instance, which is already configured
   logger,
 });
-
-// Create an express app instance we can use to attach middleware and HTTP routes
-const app = express();
-
 // Use logging middleware
 app.use(pino);
 
@@ -29,32 +28,8 @@ app.use(cors());
 // Use gzip/deflate compression middleware
 app.use(compression());
 
-// Middleware to handle raw text
-app.use(express.text({ type: "*/*" }));
-
-// Middleware to handle raw images
-app.use((req, res, next) => {
-  if (req.is("image/*")) {
-    const contentLength = parseInt(req.header("Content-Length"));
-    if (contentLength > 10 * 1024 * 1024) {
-      // 10MB limit
-      return res
-        .status(413)
-        .send(createErrorResponse(413, "Payload Too Large"));
-    }
-    req.setEncoding("binary");
-    req.data = "";
-    req.on("data", (chunk) => {
-      req.data += chunk;
-    });
-    req.on("end", () => {
-      req.body = Buffer.from(req.data, "binary");
-      next();
-    });
-  } else {
-    next();
-  }
-});
+// Middleware for parsing multipart form data
+app.use(bodyParser.raw({ type: '*/*' }));
 
 // Set up our passport authentication middleware
 passport.use(authenticate.strategy());

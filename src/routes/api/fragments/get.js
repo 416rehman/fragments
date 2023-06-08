@@ -30,7 +30,7 @@ module.exports.getFragments = (req, res) => {
 module.exports.getFragment = (req, res) => {
   const parts = req.params.id.split(".");
   const id = parts[0];
-  const extension = parts.length > 1 ? parts[1] : null;
+  const as = parts.length > 1 ? parts[1] : null;
 
   const fragment = db.get(id, req.user, false);
   if (!fragment) {
@@ -38,8 +38,8 @@ module.exports.getFragment = (req, res) => {
     return;
   }
 
-  if (extension) {
-    const converted = convert(fragment.data, fragment.metadata.type, extension);
+  if (as) {
+    const converted = convert(fragment.data, fragment.metadata.type, as);
     if (!converted.success) {
       const validConversions = getValidConversionsForContentType(
         fragment.metadata.type
@@ -61,7 +61,7 @@ module.exports.getFragment = (req, res) => {
 
     res.set(
       "Content-Type",
-      getContentTypeForExtension(extension) || fragment.metadata.type
+      getContentTypeForExtension(as) || fragment.metadata.type
     );
   } else {
     res.set("Content-Type", fragment.metadata.type);
