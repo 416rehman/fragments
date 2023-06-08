@@ -4,24 +4,39 @@ const striptags = require("striptags");
 const sharp = require("sharp");
 
 const markdownToHtml = (markdown) => {
+    if (! (typeof markdown === 'string' || markdown instanceof String)) {
+        markdown = new TextDecoder("utf-8").decode(markdown);
+    }
     return marked.parse(markdown, {headerIds: false, mangle: false});
 };
 
 const markdownToText = (markdown) => {
+    if (! (typeof markdown === 'string' || markdown instanceof String)) {
+        markdown = new TextDecoder("utf-8").decode(markdown);
+    }
     const html = markdownToHtml(markdown);
     return htmlToText(html);
 };
 
 const htmlToMarkdown = (html) => {
+    if (! (typeof html === 'string' || html instanceof String)) {
+        html = new TextDecoder("utf-8").decode(html);
+    }
     const turndownService = new turndown();
     return turndownService.turndown(html);
 };
 
 const htmlToText = (html) => {
+    if (! (typeof html === 'string' || html instanceof String)) {
+        html = new TextDecoder("utf-8").decode(html);
+    }
     return striptags(html);
 };
 
 const jsonToText = (json) => {
+    if (! (typeof json === 'string' || json instanceof String)) {
+        json = new TextDecoder("utf-8").decode(json);
+    }
     return JSON.stringify(json);
 };
 
