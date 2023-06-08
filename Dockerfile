@@ -26,8 +26,11 @@ COPY package*.json ./
 # Install the dependencies
 RUN npm install
 
-# Copy src to /app/src/
-COPY ./src ./src
+# Copy
+COPY . .
 
 # Expose the port on which the Express app will run
 EXPOSE ${PORT}
+
+# Run the start script defined in package.json
+CMD [ "npm", "start" ]
