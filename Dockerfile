@@ -1,33 +1,35 @@
-# Use the official Node.js image as the base image
-FROM node:18
+# Use a specific version of the Node.js base image
+FROM node:18-alpine as builder
 
-# metadata
+# Metadata
 LABEL maintainer="Rehman Ahmadzai"
 LABEL description="Fragments node.js microservice"
 
-# image environment variables
-# We default to use port 8080 in our service
+# Image environment variables
 ENV PORT=8080
-
-# Reduce npm spam when installing within Docker
-# https://docs.npmjs.com/cli/v8/using-npm/config#loglevel
 ENV NPM_CONFIG_LOGLEVEL=warn
-
-# Disable colour when run inside Docker
-# https://docs.npmjs.com/cli/v8/using-npm/config#color
 ENV NPM_CONFIG_COLOR=false
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the package.json and package-lock.json files to the working directory
-COPY package*.json ./
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
 
-# Install the dependencies
+# Install dependencies
 RUN npm install
 
-# Copy
+# Copy application files
 COPY . .
+
+# Final stage, using a smaller base image
+FROM node:18-alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy built artifacts from the previous stage
+COPY --from=builder /app .
 
 # Expose the port on which the Express app will run
 EXPOSE ${PORT}
