@@ -59,15 +59,12 @@ module.exports.getFragment = (req, res) => {
     }
     fragment.data = converted.data;
 
-    res.set(
-      "Content-Type",
-      getContentTypeForExtension(as) || fragment.metadata.type
-    );
+    res.writeHead(200, {"Content-Type": getContentTypeForExtension(as) || fragment.metadata.type});
   } else {
-    res.set("Content-Type", fragment.metadata.type);
+    res.writeHead(200, {"Content-Type": fragment.metadata.type});
   }
 
-  res.send(fragment.data);
+  res.write(fragment.data);
 };
 
 module.exports.getFragmentInfo = (req, res) => {
