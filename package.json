@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test:integration": "hurl --test --glob \"tests/integration/**/*.hurl\"",
     "test:watch": "jest -c jest.config.js --runInBand --watch --",
     "test": "NODE_ENV=dev jest -c jest.config.js --runInBand --",
     "coverage": "jest -c jest.config.js --runInBand --coverage",
@@ -24,6 +25,7 @@
   },
   "homepage": "https://github.com/416rehman/fragments#readme",
   "devDependencies": {
+    "@orangeopensource/hurl": "^4.0.0",
     "eslint": "^8.40.0",
     "jest": "^29.5.0",
     "nodemon": "^2.0.22",

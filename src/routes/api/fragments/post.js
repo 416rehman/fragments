@@ -39,7 +39,7 @@ module.exports = (req, res) => {
         res.status(500).send(createErrorResponse(500, "Failed to create fragment"));
     }
 
-    res.set("Location", `/v1/fragments/${fragment.id}`);
+    res.set("Location", `${req.protocol}://${req.get("host")}/v1/fragments/${fragment.id}`);
 
     res.status(201).send(createSuccessResponse({fragment}));
 };
