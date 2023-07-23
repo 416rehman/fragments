@@ -59,12 +59,13 @@ module.exports.getFragment = (req, res) => {
     }
     fragment.data = converted.data;
 
-    res.writeHead(200, {"Content-Type": getContentTypeForExtension(as) || fragment.metadata.type});
+    res.writeHead(200, {"Content-Type": getContentTypeForExtension(as) || fragment.metadata.type, "Content-Length": fragment.metadata.size});
   } else {
-    res.writeHead(200, {"Content-Type": fragment.metadata.type});
+    res.writeHead(200, {"Content-Type": fragment.metadata.type, "Content-Length": fragment.metadata.size});
   }
 
   res.write(fragment.data);
+  res.end();
 };
 
 module.exports.getFragmentInfo = (req, res) => {
