@@ -44,7 +44,7 @@
         },
         {
           "name": "AWS_S3_BUCKET_NAME",
-          "value": ""
+          "value": "hahmadzai3-fragments"
         },
         {
           "name": "AWS_SECRET_ACCESS_KEY",
@@ -92,7 +92,7 @@
   ],
   "placementConstraints": [],
   "memory": "512",
-  "taskRoleArn": null,
+  "taskRoleArn": "arn:aws:iam::725738181970:role/LabRole",
   "compatibilities": [
     "EC2",
     "FARGATE"
