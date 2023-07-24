@@ -37,6 +37,11 @@ services:
       # something else is defined in the env.
       - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME:-fragments}
       - AWS_DYNAMODB_TABLE_NAME=${AWS_DYNAMODB_TABLE_NAME:-fragments}
+      # AWS credentials for the localstack container
+      - AWS_ACCESS_KEY_ID=ASIA2R6K52VJMVIOA424
+      - AWS_SECRET_ACCESS_KEY=W1UAnao4fVP3sf6zOWIwuW+1bl66RhBG1fIcxteH
+      - AWS_SESSION_TOKEN=FwoGZXIvYXdzEH4aDBZmoEI4iucR9+JXESLHAXOkIYc4d0iLlCbYu2hTGv3W6hzhgMMvZ9hZk6Om8WkJW2Cxmo8HANU2fFvpjciPRT3SgKvWi26cR82oq/VeNSBnmX5XDt0upCSm1A37RE7LShVg+4BcBf67sEGDL6xa5Ly6wGQCd4IHgfy6tx74aTwrFD5vyCRUG2utGxDpX8qMTvmxYxcAsAVH0XFK8+YyiGRjKoamQpcNKk+AYfGe4w75FzZMKKGgP6LqTPqBZelfiAARBVr0SWD02BzejH0eVYXr9jD/4sEo5qL2pQYyLVUqvsi8g/9ECi2W3ei/rQMcUvuGk1PJ/TPGoYTdXXJPMG22A91dPw/YkoAnKQ==
+
     # Ports to publish
     ports:
       - '8080:8080'

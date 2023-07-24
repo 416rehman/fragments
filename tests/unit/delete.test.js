@@ -1,6 +1,6 @@
 const request = require("supertest");
 const app = require("../../src/app");
-const db = require("../../src/db/inmemoryDB.js");
+const db = require("../../src/db");
 const {
   createSuccessResponse,
   createErrorResponse,

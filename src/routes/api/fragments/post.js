@@ -1,4 +1,4 @@
-const db = require("../../../db/inmemoryDB.js");
+const db = require("../../../db");
 const {
     isContentTypeSupported,
     conversionTable,
@@ -11,7 +11,7 @@ const {
     createErrorResponse,
 } = require("../../../response");
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
     const type = req.headers["content-type"];
     const binaryData = req.body;
 
@@ -33,13 +33,17 @@ module.exports = (req, res) => {
             );
     }
 
-    const fragment = db.create(binaryData, type, req.user);
-    if (!fragment) {
-        //Server error
-        res.status(500).send(createErrorResponse(500, "Failed to create fragment"));
+    try {
+        const fragment = await db.create(binaryData, type, req.user);
+        if (!fragment) {
+            //Server error
+            res.status(500).send(createErrorResponse(500, "Failed to create fragment"));
+        }
+
+        res.set("Location", `${req.protocol}://${req.get("host")}/v1/fragments/${fragment.id}`);
+
+        res.status(201).send(createSuccessResponse({fragment}));
+    } catch (err) {
+        res.status(500).send(createErrorResponse(500, err.message));
     }
-
-    res.set("Location", `${req.protocol}://${req.get("host")}/v1/fragments/${fragment.id}`);
-
-    res.status(201).send(createSuccessResponse({fragment}));
 };

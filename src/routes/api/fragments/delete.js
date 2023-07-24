@@ -1,4 +1,4 @@
-const db = require("../../../db/inmemoryDB.js");
+const db = require("../../../db");
 
 /**
  * Get a list of fragments for the current user
@@ -8,8 +8,8 @@ const {
   createErrorResponse,
 } = require("../../../response");
 
-module.exports = (req, res) => {
-  if (db.delete(req.params.id, req.user)) {
+module.exports = async (req, res) => {
+  if (await db.delete(req.params.id, req.user)) {
     res.status(200).send(createSuccessResponse());
     return;
   }
