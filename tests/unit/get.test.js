@@ -101,7 +101,7 @@ describe("GET /v1/fragments", () => {
         .auth(authEmail, authPassword)
         .expect(200);
 
-      const conversionResult = convert(
+      const conversionResult = await convert(
         fragmentBody,
         fragmentType,
         supportedExtension

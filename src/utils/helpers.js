@@ -81,7 +81,7 @@ const isContentTypeSupported = (contentType) => {
   return !!conversionTable[contentType];
 };
 
-const convert = (data, fromContentType, toExtension) => {
+const convert = async (data, fromContentType, toExtension) => {
   const isValidExtension = getContentTypeForExtension(toExtension);
   if (!isValidExtension) {
     return {
@@ -121,9 +121,11 @@ const convert = (data, fromContentType, toExtension) => {
     };
   }
 
+  const isPromise = conversionFunction.constructor.name === "AsyncFunction";
+
   return {
     success: true,
-    data: conversionFunction(data),
+    data: isPromise ? await conversionFunction(data) : conversionFunction(data),
   };
 };
 

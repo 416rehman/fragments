@@ -3,18 +3,18 @@ const turndown = require("turndown");
 const striptags = require("striptags");
 const sharp = require("sharp");
 
-const markdownToHtml = (markdown) => {
-    if (! (typeof markdown === 'string' || markdown instanceof String)) {
+const markdownToHtml = async (markdown) => {
+    if (!(typeof markdown === 'string' || markdown instanceof String)) {
         markdown = new TextDecoder("utf-8").decode(markdown);
     }
-    return marked.parse(markdown, {headerIds: false, mangle: false});
+    return await marked.parse(markdown, {headerIds: false, mangle: false});
 };
 
-const markdownToText = (markdown) => {
-    if (! (typeof markdown === 'string' || markdown instanceof String)) {
+const markdownToText = async (markdown) => {
+    if (!(typeof markdown === 'string' || markdown instanceof String)) {
         markdown = new TextDecoder("utf-8").decode(markdown);
     }
-    const html = markdownToHtml(markdown);
+    const html = await markdownToHtml(markdown);
     return htmlToText(html);
 };
 
