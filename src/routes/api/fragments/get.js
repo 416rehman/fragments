@@ -34,8 +34,7 @@ module.exports.getFragment = async (req, res) => {
 
   const fragment = await db.get(id, req.user, false);
   if (!fragment) {
-    res.status(404).send(createErrorResponse(404, "Fragment not found"));
-    return;
+    return res.status(404).send(createErrorResponse(404, "Fragment not found"));
   }
 
   if (as) {
@@ -75,9 +74,8 @@ module.exports.getFragmentInfo = async (req, res) => {
   const id = req.params.id;
   const fragment = await db.get(id, req.user, true);
   if (!fragment) {
-    res.status(404).send(createErrorResponse(404, "Fragment not found"));
-    return;
+    return res.status(404).send(createErrorResponse(404, "Fragment not found"));
   }
 
-  res.send(createSuccessResponse({fragment}));
+  return res.send(createSuccessResponse({fragment}));
 };

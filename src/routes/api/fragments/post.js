@@ -15,15 +15,13 @@ module.exports = async (req, res) => {
     const type = req.headers["content-type"];
     const binaryData = req.body;
 
-    console.log('POST /v1/fragments', {type, binaryData});
-
     if (!binaryData || binaryData.length === 0) {
-        res.status(400).send(createErrorResponse(400, "Missing body"));
+        return res.status(400).send(createErrorResponse(400, "Missing body"));
     }
 
     if (!isContentTypeSupported(type)) {
         const validTypes = Object.keys(conversionTable).join(", ");
-        res
+        return res
             .status(415)
             .send(
                 createErrorResponse(
@@ -37,13 +35,11 @@ module.exports = async (req, res) => {
         const fragment = await db.create(binaryData, type, req.user);
         if (!fragment) {
             //Server error
-            res.status(500).send(createErrorResponse(500, "Failed to create fragment"));
+            return res.status(500).send(createErrorResponse(500, "Failed to create fragment"));
         }
 
-        res.set("Location", `${req.protocol}://${req.get("host")}/v1/fragments/${fragment.id}`);
-
-        res.status(201).send(createSuccessResponse({fragment}));
+        return res.set("Location", `${req.protocol}://${req.get("host")}/v1/fragments/${fragment.id}`).status(201).send(createSuccessResponse({fragment}));
     } catch (err) {
-        res.status(500).send(createErrorResponse(500, err.message));
+        return res.status(500).send(createErrorResponse(500, err.message));
     }
 };

@@ -10,9 +10,8 @@ const {
 
 module.exports = async (req, res) => {
   if (await db.delete(req.params.id, req.user)) {
-    res.status(200).send(createSuccessResponse());
-    return;
+    return res.status(200).send(createSuccessResponse());
   }
 
-  res.status(404).send(createErrorResponse(404, "Fragment not found"));
+  return res.status(404).send(createErrorResponse(404, "Fragment not found"));
 };
