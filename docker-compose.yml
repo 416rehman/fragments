@@ -22,24 +22,25 @@ services:
     environment:
       # Our API will be running on http://localhost:8080
       - API_URL=http://localhost:8080
+
       # AUTHENTICATION
-#      - HTPASSWD_FILE=tests/.htpasswd
-      - AWS_COGNITO_POOL_ID=us-east-1_UrJMfuo8a
-      - AWS_COGNITO_CLIENT_ID=71u3503jod2v1eejtjkfh89459
+      - HTPASSWD_FILE=tests/.htpasswd
+#      - AWS_COGNITO_POOL_ID=us-east-1_UrJMfuo8a
+#      - AWS_COGNITO_CLIENT_ID=71u3503jod2v1eejtjkfh89459
+
       # Use the LOG_LEVEL set in the host environment, or default to info
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
       - AWS_REGION=us-east-1
+
       # Use the LocalStack endpoint vs. AWS for S3 AWS SDK clients.
       # NOTE: we use Docker's internal network to the localstack container
       - AWS_S3_ENDPOINT_URL=http://localstack:4566
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME:-hahmadzai3-fragments}
+
       # Use the DynamoDB local endpoint vs. AWS for DynamoDB AWS SDK clients.
       - AWS_DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
       - AWS_DYNAMODB_TABLE_NAME=${AWS_DYNAMODB_TABLE_NAME:-fragments}
-      # This S3 bucket and DynamoDB table need to get created first, see
-      # local-aws-setup.sh. We'll default to 'fragments' as the name, unless
-      # something else is defined in the env.
-      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME:-fragments}
-      # AWS credentials for the localstack container
+
       - AWS_ACCESS_KEY_ID=
       - AWS_SECRET_ACCESS_KEY=
       - AWS_SESSION_TOKEN=

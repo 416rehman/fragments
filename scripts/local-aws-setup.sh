@@ -26,8 +26,8 @@ done
 echo 'LocalStack S3 Ready'
 
 # Create our S3 bucket with LocalStack
-echo "Creating LocalStack S3 bucket: fragments"
-aws --no-cli-pager --endpoint-url=http://localhost:4566 s3api create-bucket --bucket fragments
+echo "Creating LocalStack S3 bucket: hahmadzai3-fragments"
+aws --no-cli-pager --endpoint-url=http://localhost:4566 s3api create-bucket --bucket hahmadzai3-fragments
 
 echo "CREATED LocalStack S3 bucket: fragments"
 
