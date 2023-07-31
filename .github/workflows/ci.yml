@@ -68,6 +68,23 @@ jobs:
         # 2. Use `install-ci-test` to do it in a single command, see https://docs.npmjs.com/cli/v8/commands/npm-install-ci-test
         # run: npm install-ci-test
         run: npm install-ci-test
+  integration-tests:
+    name: Hurl Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install node dependencies and run Tests
+        run: |
+          npm install
+          npm run test:integration
   docker-hub:
     name: Build and Push to Docker Hub
     # Don't bother running this job unless the other three all pass
