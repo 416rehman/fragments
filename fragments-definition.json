@@ -43,6 +43,10 @@
           "value": "us-east-1"
         },
         {
+          "name": "AWS_DYNAMODB_TABLE_NAME",
+            "value": "fragments"
+        },
+        {
           "name": "AWS_S3_BUCKET_NAME",
           "value": "hahmadzai3-fragments"
         },
