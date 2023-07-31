@@ -225,7 +225,7 @@ class FragmentsDatabase {
     static async getAllForOwner(ownerId, expand = false) {
 
         const metadataList = await FragmentsDatabase.listFragments(ownerId, expand);
-        if (!expand) {
+        if (expand === false) {
             return metadataList;
         }
 

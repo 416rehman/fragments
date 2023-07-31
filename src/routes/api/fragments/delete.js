@@ -11,7 +11,9 @@ const crypto = require("crypto");
 
 module.exports = async (req, res) => {
   const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
-  if (await db.delete(req.params.id, ownerId)) {
+  const result = await db.delete(req.params.id, ownerId);
+  console.log(result);
+  if (result) {
     return res.status(200).send(createSuccessResponse());
   }
 

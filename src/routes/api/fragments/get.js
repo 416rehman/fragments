@@ -19,6 +19,8 @@ module.exports.getFragments = async (req, res) => {
     const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
     let fragments = await db.getAllForOwner(ownerId, bExpand);
 
+    if (!bExpand && fragments?.[0]?.metadata) fragments = fragments.map((f) => f?.metadata?.id);
+
     res.send(createSuccessResponse({fragments}));
 };
 

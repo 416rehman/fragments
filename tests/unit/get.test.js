@@ -7,14 +7,23 @@ const {
   createErrorResponse,
 } = require("../../src/response");
 const { convert } = require("../../src/utils/helpers");
+const crypto = require("crypto");
 
 const authEmail = "user1@email.com";
 const authPassword = "password1";
 
 const fragmentBody = "sample body";
 const fragmentType = "text/markdown";
-const ownedFragment = db.create(fragmentBody, fragmentType, authEmail);
-const otherFragment = db.create(fragmentBody, fragmentType, "user2@email.com");
+
+let ownedFragment;
+let otherFragment;
+beforeAll(async () => {
+  const ownerId = crypto.createHash("sha256").update(authEmail).digest("hex")
+  ownedFragment = await db.create(fragmentBody, fragmentType, ownerId);
+  const otherOwnerId = crypto.createHash("sha256").update("user2@email.com").digest("hex")
+  otherFragment = await db.create(fragmentBody, fragmentType, otherOwnerId);
+});
+
 
 describe("GET /v1/fragments", () => {
   // If the request is missing the Authorization header, it should be forbidden

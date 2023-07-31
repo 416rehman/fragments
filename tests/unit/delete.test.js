@@ -5,14 +5,22 @@ const {
   createSuccessResponse,
   createErrorResponse,
 } = require("../../src/response");
+const crypto = require("crypto");
 
 // CONSTANTS
 const authEmail = "user1@email.com";
 const authPassword = "password1";
 const fragmentBody = "sample body";
 const fragmentType = "text/markdown";
-const ownedFragment = db.create(fragmentBody, fragmentType, authEmail);
-const otherFragment = db.create(fragmentBody, fragmentType, "user2@email.com");
+
+let ownedFragment, ownerId, otherOwnerId, otherFragment;
+
+beforeAll(async () => {
+    ownerId = crypto.createHash("sha256").update(authEmail).digest("hex")
+    ownedFragment = await db.create(fragmentBody, fragmentType, ownerId);
+    otherOwnerId = crypto.createHash("sha256").update("user2@email.com").digest("hex")
+    otherFragment = await db.create(fragmentBody, fragmentType, otherOwnerId);
+});
 
 describe("DELETE /v1/fragments/:id", () => {
   // If the request is missing the Authorization header, it should be forbidden
@@ -42,7 +50,7 @@ describe("DELETE /v1/fragments/:id", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual(createSuccessResponse());
     // Ensure the fragment is deleted from the database
-    expect(db.get(ownedFragment.id, authEmail)).toBeNull();
+    expect(db.get(ownedFragment.id, ownerId)).toBeNull();
   });
 
   test("should return 404 if trying to delete a fragment owned by another user", async () => {
@@ -52,6 +60,6 @@ describe("DELETE /v1/fragments/:id", () => {
     expect(res.statusCode).toBe(404);
     expect(res.body).toEqual(createErrorResponse(404, "Fragment not found"));
     // Ensure the fragment owned by another user is not deleted from the database
-    expect(db.get(otherFragment.id, "user2@email.com")).not.toBeNull();
+    expect(db.get(otherFragment.id, otherOwnerId)).not.toBeNull();
   });
 });
