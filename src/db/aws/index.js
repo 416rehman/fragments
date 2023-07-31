@@ -178,21 +178,22 @@ class FragmentsDatabase {
      */
     static async update(id, ownerId, newBlob) {
         if (!id || !ownerId || !newBlob) {
+            console.log("No id, ownerId, or newBlob provided");
             return null;
         }
 
         // Check that the object exists
-        const metadataIndex = FragmentsDatabase.metadataList.findIndex((object) => {
-            return object.id === id;
-        });
-        if (metadataIndex === -1) {
+        const object = FragmentsDatabase.metadataList.find((object) => object.id === id);
+        if (!object) {
+            console.log("Object does not exist");
             return null;
         }
 
         // Check that the owner ID matches
         const ownerHash = crypto.createHash("sha256").update(ownerId).digest("hex");
 
-        if (FragmentsDatabase.metadataList[metadataIndex].ownerId !== ownerHash) {
+        if (object.ownerId !== ownerHash) {
+            console.log("Owner ID does not match");
             return null;
         }
 
@@ -201,10 +202,7 @@ class FragmentsDatabase {
             await FragmentsDatabase.delete(id, ownerId);
 
             // then create a new one
-            await FragmentsDatabase.create(newBlob, FragmentsDatabase.metadataList[metadataIndex].type, ownerId);
-
-            // return the updated object
-            return FragmentsDatabase.metadataList[metadataIndex];
+            return await FragmentsDatabase.create(newBlob, object.type, ownerId);
         } catch (err) {
             logger.error({err}, 'Error updating fragment data');
             return null;
