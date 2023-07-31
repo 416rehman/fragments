@@ -69,7 +69,10 @@ jobs:
         # run: npm install-ci-test
         run: npm install-ci-test
   integration-tests:
-    name: Hurl Integration Tests
+    # Runs the docker-compose.yml file in the root of the repo to start the services
+    # Then runs the file in the root of the repo /scripts/local-aws-setup.sh to set up the AWS resources
+    # Then finally tests the API using npm run test:integration
+    name: Integration Tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -81,10 +84,17 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install node dependencies and run Tests
-        run: |
-          npm install
-          npm run test:integration
+      - name: Install node dependencies
+        run: npm ci
+
+      - name: Start services
+        run: docker-compose up -d
+
+      - name: Setup AWS resources
+        run: chmod +x ./scripts/local-aws-setup.sh && ./scripts/local-aws-setup.sh
+
+      - name: Run integration tests
+        run: npm run test:integration
   docker-hub:
     name: Build and Push to Docker Hub
     # Don't bother running this job unless the other three all pass

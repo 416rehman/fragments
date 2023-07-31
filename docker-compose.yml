@@ -41,9 +41,9 @@ services:
       - AWS_DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
       - AWS_DYNAMODB_TABLE_NAME=${AWS_DYNAMODB_TABLE_NAME:-fragments}
 
-      - AWS_ACCESS_KEY_ID=
-      - AWS_SECRET_ACCESS_KEY=
-      - AWS_SESSION_TOKEN=
+      - AWS_ACCESS_KEY_ID=YourAWSAccessKeyHere
+      - AWS_SECRET_ACCESS_KEY=YOurAWSSecretAccessKeyHere
+      - AWS_SESSION_TOKEN=YOurAWSSessionTokenHere
 
     # Ports to publish
     ports:
