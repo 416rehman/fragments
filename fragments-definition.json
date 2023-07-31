@@ -32,11 +32,11 @@
         },
         {
           "name": "AWS_COGNITO_CLIENT_ID",
-          "value": ""
+          "value": "71u3503jod2v1eejtjkfh89459"
         },
         {
           "name": "AWS_COGNITO_POOL_ID",
-          "value": ""
+          "value": "us-east-1_UrJMfuo8a"
         },
         {
           "name": "AWS_REGION",
