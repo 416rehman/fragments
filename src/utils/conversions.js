@@ -52,8 +52,13 @@ const pngToGif = (png) => {
     return sharp(png).gif().toBuffer();
 };
 
-const jpegToPng = (jpeg) => {
-    return sharp(jpeg).png().toBuffer();
+const jpegToPng = async (jpeg) => {
+    try {
+        return await sharp(jpeg).toFormat("png").toBuffer();
+    } catch (error) {
+        console.error("Error converting JPEG to PNG:", error);
+        return null; // or throw an error, or handle it according to your use case
+    }
 };
 
 const jpegToWebp = (jpeg) => {

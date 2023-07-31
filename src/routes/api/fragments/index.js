@@ -6,6 +6,7 @@ const { getFragment, getFragments, getFragmentInfo } = require("./get");
 const postFragment = require("./post");
 const putFragment = require("./put");
 const deleteFragment = require("./delete");
+const bodyParser = require("body-parser");
 
 // Create a router on which to mount our API endpoints
 const router = express.Router();

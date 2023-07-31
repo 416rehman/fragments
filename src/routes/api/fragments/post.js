@@ -10,6 +10,7 @@ const {
     createSuccessResponse,
     createErrorResponse,
 } = require("../../../response");
+const crypto = require("crypto");
 
 module.exports = async (req, res) => {
     const type = req.headers["content-type"];
@@ -32,7 +33,8 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const fragment = await db.create(binaryData, type, req.user);
+        const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
+        const fragment = await db.create(binaryData, type, ownerId);
         if (!fragment) {
             //Server error
             return res.status(500).send(createErrorResponse(500, "Failed to create fragment"));

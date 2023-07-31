@@ -1,7 +1,9 @@
 const crypto = require("crypto");
 const logger = require("../../logger");
 const s3Client = require("./s3Client");
-const {PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsCommand} = require("@aws-sdk/client-s3");
+const {PutObjectCommand, GetObjectCommand, DeleteObjectCommand} = require("@aws-sdk/client-s3");
+const ddbDocClient = require('./ddbDocClient');
+const {PutCommand, GetCommand, QueryCommand, DeleteCommand} = require('@aws-sdk/lib-dynamodb');
 
 function streamToBuffer(stream) {
     return new Promise((resolve, reject) => {
@@ -29,7 +31,107 @@ function streamToBuffer(stream) {
  * }
  */
 class FragmentsDatabase {
-    static metadataList = [];
+    // Writes a fragment to DynamoDB. Returns a Promise.
+    static async writeFragment(fragment) {
+        // Configure our PUT params, with the name of the table and item (attributes and keys)
+        const params = {
+            TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+            Item: fragment,
+        };
+
+        // Create a PUT command to send to DynamoDB
+        const command = new PutCommand(params);
+
+        try {
+            return await ddbDocClient.send(command);
+        } catch (err) {
+            logger.warn({err, params, fragment}, 'error writing fragment to DynamoDB');
+            throw err;
+        }
+    }
+
+    // Reads a fragment from DynamoDB. Returns a Promise<fragment|undefined>
+    static async readFragment(ownerId, id) {
+        // Configure our GET params, with the name of the table and key (partition key + sort key)
+        const params = {
+            TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+            Key: {ownerId, id},
+        };
+
+        // Create a GET command to send to DynamoDB
+        const command = new GetCommand(params);
+
+        try {
+            // Wait for the data to come back from AWS
+            const data = await ddbDocClient.send(command);
+            // We may or may not get back any data (e.g., no item found for the given key).
+            // If we get back an item (fragment), we'll return it.  Otherwise we'll return `undefined`.
+            return data?.Item;
+        } catch (err) {
+            logger.warn({err, params}, 'error reading fragment from DynamoDB');
+            throw err;
+        }
+    }
+
+    static async listFragments(ownerId, expand = false) {
+        // Configure our QUERY params, with the name of the table and the query expression
+        const params = {
+            TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+            // Specify that we want to get all items where the ownerId is equal to the
+            // `:ownerId` that we'll define below in the ExpressionAttributeValues.
+            KeyConditionExpression: 'ownerId = :ownerId',
+            // Use the `ownerId` value to do the query
+            ExpressionAttributeValues: {
+                ':ownerId': ownerId,
+            },
+        };
+
+        // Limit to only `id` if we aren't supposed to expand. Without doing this
+        // we'll get back every attribute.  The projection expression defines a list
+        // of attributes to return, see:
+        // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ProjectionExpressions.html
+        if (!expand) {
+            params.ProjectionExpression = 'id';
+        }
+
+        // Create a QUERY command to send to DynamoDB
+        const command = new QueryCommand(params);
+
+        try {
+            // Wait for the data to come back from AWS
+            const data = await ddbDocClient.send(command);
+
+            // If we haven't expanded to include all attributes, remap this array from
+            // [ {"id":"b9e7a264-630f-436d-a785-27f30233faea"}, {"id":"dad25b07-8cd6-498b-9aaf-46d358ea97fe"} ,... ] to
+            // [ "b9e7a264-630f-436d-a785-27f30233faea", "dad25b07-8cd6-498b-9aaf-46d358ea97fe", ... ]
+            return !expand ? data?.Items.map((item) => item.id) : data?.Items
+        } catch (err) {
+            logger.error({err, params}, 'error getting all fragments for user from DynamoDB');
+            throw err;
+        }
+    }
+
+    // Deletes a fragment from DynamoDB. Returns a Promise.
+    static async deleteFragment(ownerId, id) {
+        // Configure our DELETE params, with the name of the table and key (partition key + sort key)
+        const params = {
+            TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+            Key: {ownerId, id},
+            ReturnValues: 'ALL_OLD',
+        };
+
+        // Create a DELETE command to send to DynamoDB
+        const command = new DeleteCommand(params);
+
+        try {
+            const result = await ddbDocClient.send(command);
+            // Return the deleted item
+            return result?.Attributes;
+        } catch (err) {
+            logger.warn({err, params}, 'error deleting fragment from DynamoDB');
+            throw err;
+        }
+    }
 
     // Create a new fragment object and store it in the database's metadata and data arrays.
     static async create(blob, type, ownerId, id = null) {
@@ -39,7 +141,7 @@ class FragmentsDatabase {
 
         const metadata = {
             id: id || crypto.randomUUID(),
-            ownerId: crypto.createHash("sha256").update(ownerId).digest("hex"),
+            ownerId: ownerId,
             created: new Date().toISOString(),
             updated: new Date().toISOString(),
             type: type,
@@ -50,11 +152,9 @@ class FragmentsDatabase {
         const params = {
             Bucket: process.env.AWS_S3_BUCKET_NAME,
             // Our key will be a mix of the ownerID and fragment id, written as a path
-            Key: `${metadata.ownerId}/${metadata.id}`,
+            Key: `${ownerId}/${metadata.id}`,
             Body: blob,
         };
-
-        console.log(params);
 
         // Create a PUT Object command to send to S3
         const command = new PutObjectCommand(params);
@@ -62,13 +162,16 @@ class FragmentsDatabase {
         try {
             // Use our client to send the command
             await s3Client.send(command);
-            FragmentsDatabase.metadataList.push(metadata);
+            // If successful, add the metadata to our list
+            await FragmentsDatabase.writeFragment(metadata);
         } catch (err) {
             // If anything goes wrong, log enough info that we can debug
             const {Bucket, Key} = params;
             logger.error({err, Bucket, Key}, 'Error uploading fragment data to S3');
-            throw new Error('unable to upload fragment data');
+            throw new Error('Unable to upload fragment data');
         }
+
+
 
         return metadata;
     }
@@ -81,15 +184,12 @@ class FragmentsDatabase {
      * }
      */
     static async get(id, ownerId, metadataOnly = true) {
-        const ownerHash = crypto.createHash("sha256").update(ownerId).digest("hex");
-        const metadata = FragmentsDatabase.metadataList.find(
-            (object) => object.id === id
-        );
+        const metadata = await FragmentsDatabase.readFragment(ownerId, id);
         if (!metadata) {
             return null;
         }
 
-        if (metadata.ownerId !== ownerHash) {
+        if (metadata.ownerId !== ownerId) {
             return null;
         }
 
@@ -99,8 +199,7 @@ class FragmentsDatabase {
         // Create the PUT API params from our details
         const params = {
             Bucket: process.env.AWS_S3_BUCKET_NAME,
-            // Our key will be a mix of the ownerID and fragment id, written as a path
-            Key: `${crypto.createHash("sha256").update(ownerId).digest("hex")}/${id}`,
+            Key: `${ownerId}/${metadata.id}`,
         };
 
         // Create a GET Object command to send to S3
@@ -123,48 +222,34 @@ class FragmentsDatabase {
      * if metadataOnly is true, returns: [{id, ownerId, created, updated, type, size}, {...}]
      * if metadataOnly is false, returns: [{metadata: {id, ownerId, created, updated, type, size}, data: <Buffer>}, {...}]
      */
-    static async getAllForOwner(ownerId, metadataOnly = true) {
-        const ownerHash = crypto.createHash("sha256").update(ownerId).digest("hex");
+    static async getAllForOwner(ownerId, expand = false) {
 
-        const metadataList = FragmentsDatabase.metadataList.filter(
-            (object) => object.ownerId === ownerHash
-        );
-        if (metadataOnly) {
+        const metadataList = await FragmentsDatabase.listFragments(ownerId, expand);
+        if (!expand) {
             return metadataList;
         }
 
-        const params = {
-            Bucket: process.env.AWS_S3_BUCKET_NAME,
-            // The key should start with the owner ID, so we can use that to filter
-            Prefix: `${ownerId}/`,
-        };
-
-        // Create a list command to send to S3
-        const command = new ListObjectsCommand(params);
-
+        // For each object, create a GET Object command to send to S3
         try {
-            const data = await s3Client.send(command);
-            const promises = [];
-            for (const object of data.Contents) {
+            const dataPromises = metadataList.map((metadata) => {
                 const params = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME,
                     // Our key will be a mix of the ownerID and fragment id, written as a path
-                    Key: object.Key,
+                    Key: `${metadata.ownerId}/${metadata.id}`,
                 };
-
-                // Create a GET Object command to send to S3
                 const command = new GetObjectCommand(params);
-                promises.push(s3Client.send(command));
-            }
-            const results = await Promise.all(promises);
-            const buffers = await Promise.all(results.map((result) => streamToBuffer(result.Body)));
-            return metadataList.map((metadata, index) => {
-                return {metadata, data: buffers[index]};
+                return s3Client.send(command);
             });
+
+            // Get all the objects from the Amazon S3 bucket. They are returned as ReadableStreams.
+            const data = await Promise.all(dataPromises);
+            // Convert the ReadableStreams to Buffers
+            const buffers = await Promise.all(data.map((stream) => streamToBuffer(stream.Body)));
+            // Combine the metadata and data into a single object
+            return metadataList.map((metadata, index) => ({metadata, data: buffers[index]}));
         } catch (err) {
-            const {Bucket, Prefix} = params;
-            logger.error({err, Bucket, Prefix}, 'Error listing fragment data from S3');
-            throw new Error('unable to list fragment data');
+            logger.error({err}, 'Error streaming fragment data from S3');
+            throw new Error('unable to read fragment data');
         }
     }
 
@@ -178,31 +263,18 @@ class FragmentsDatabase {
      */
     static async update(id, ownerId, newBlob) {
         if (!id || !ownerId || !newBlob) {
-            console.log("No id, ownerId, or newBlob provided");
-            return null;
-        }
-
-        // Check that the object exists
-        const object = FragmentsDatabase.metadataList.find((object) => object.id === id);
-        if (!object) {
-            console.log("Object does not exist");
-            return null;
-        }
-
-        // Check that the owner ID matches
-        const ownerHash = crypto.createHash("sha256").update(ownerId).digest("hex");
-
-        if (object.ownerId !== ownerHash) {
-            console.log("Owner ID does not match");
             return null;
         }
 
         try {
             // first delete the old object
-            await FragmentsDatabase.delete(id, ownerId);
+            const deletedMetadata = await FragmentsDatabase.delete(id, ownerId);
+            if (!deletedMetadata) {
+                return null;
+            }
 
             // then create a new one
-            return await FragmentsDatabase.create(newBlob, object.type, ownerId);
+            return await FragmentsDatabase.create(newBlob, deletedMetadata.type, ownerId);
         } catch (err) {
             logger.error({err}, 'Error updating fragment data');
             return null;
@@ -213,50 +285,36 @@ class FragmentsDatabase {
      * Delete one or more objects by ID.
      * @param id An ID of object to delete
      * @param ownerId The ID of the owner of the objects. If specified, only objects with this owner ID will be deleted.
-     * Returns true if successful, false otherwise.
+     * Returns metadata object of deleted object if successful, null otherwise.
      */
     static async delete(id, ownerId) {
         if (!id || !ownerId) {
-            return false;
+            return null;
         }
 
-        const ownerHash = crypto.createHash("sha256").update(ownerId).digest("hex");
-
-        // Get index of metadata
-        const indexOfMetadata = FragmentsDatabase.metadataList.findIndex(
-            (object) => {
-                return object.id === id && object.ownerId === ownerHash;
-            }
-        );
-        if (indexOfMetadata < 0) {
-            logger.error("Metadata not found");
-            return false;
+        // Delete all objects with matching ID and owner ID
+        const deletedMetadata = await FragmentsDatabase.deleteFragment(ownerId, id);
+        if (!deletedMetadata) {
+            return null;
         }
 
-        // Get index of blob
-        // Create the DELETE API params from our details
-        const params = {
+        // Create a DELETE Object command to send to S3
+        const command = new DeleteObjectCommand({
             Bucket: process.env.AWS_S3_BUCKET_NAME,
             // Our key will be a mix of the ownerID and fragment id, written as a path
             Key: `${ownerId}/${id}`,
-        };
-
-        // Create a DELETE Object command to send to S3
-        const command = new DeleteObjectCommand(params);
+        });
 
         try {
             // Delete the object from the Amazon S3 bucket.
             await s3Client.send(command);
         } catch (err) {
-            const {Bucket, Key} = params;
-            logger.error({err, Bucket, Key}, 'Error streaming fragment data from S3');
-            throw new Error('unable to read fragment data');
+            const {Bucket, Key} = command;
+            logger.error({err, Bucket, Key}, 'Error deleting fragment data from S3');
+            throw new Error('unable to delete fragment data');
         }
 
-        // Delete
-        FragmentsDatabase.metadataList.splice(indexOfMetadata, 1);
-
-        return true;
+        return deletedMetadata;
     }
 }
 

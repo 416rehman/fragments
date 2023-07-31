@@ -12,17 +12,12 @@ const {
     createSuccessResponse,
     createErrorResponse,
 } = require("../../../response");
+const crypto = require("crypto");
 
 module.exports.getFragments = async (req, res) => {
     const bExpand = !!req.query.expand;
-    let fragments = await db.getAllForOwner(req.user);
-
-    // IDs only if no expand key
-    if (!bExpand && fragments.length > 0) {
-        fragments = fragments.map((fragment) => {
-            return fragment.id;
-        });
-    }
+    const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
+    let fragments = await db.getAllForOwner(ownerId, bExpand);
 
     res.send(createSuccessResponse({fragments}));
 };
@@ -32,16 +27,16 @@ module.exports.getFragment = async (req, res) => {
     const id = parts[0];
     const as = parts.length > 1 ? parts[1] : null;
 
-    const fragment = await db.get(id, req.user, false);
+    const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
+
+    const fragment = await db.get(id, ownerId, false, false);
+
     if (!fragment) {
         return res.status(404).send(createErrorResponse(404, "Fragment not found"));
     }
 
     if (as) {
-        console.log("---------CONVERTING to " + as + "---------")
         const converted = await convert(fragment.data, fragment.metadata.type, as);
-        console.log("---------CONVERTED---------")
-        console.log(converted)
         if (!converted.success) {
             const validConversions = getValidConversionsForContentType(
                 fragment.metadata.type
@@ -59,29 +54,25 @@ module.exports.getFragment = async (req, res) => {
                 );
             return;
         }
-        fragment.data = converted.data;
+        fragment.data = await converted.data;
         const newType = getContentTypeForExtension(as);
-        console.log("---------NEW TYPE---------")
-        console.log(newType)
 
         res.writeHead(200, {
             "Content-Type": newType || fragment.metadata.type,
             "Content-Length": fragment.data.length,
         });
     } else {
-        console.log("---------NOT CONVERTING---------")
         res.writeHead(200, {"Content-Type": fragment.metadata.type, "Content-Length": fragment.metadata.size});
     }
 
-    console.log("FRAGMENT DATA")
-    console.log(fragment.data)
     res.write(fragment.data);
     res.end();
 };
 
 module.exports.getFragmentInfo = async (req, res) => {
     const id = req.params.id;
-    const fragment = await db.get(id, req.user, true);
+    const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
+    const fragment = await db.get(id, ownerId, true);
     if (!fragment) {
         return res.status(404).send(createErrorResponse(404, "Fragment not found"));
     }

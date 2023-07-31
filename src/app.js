@@ -29,7 +29,7 @@ app.use(cors());
 app.use(compression());
 
 // Middleware for parsing multipart form data
-app.use(bodyParser.raw({ type: '*/*' }));
+app.use(bodyParser.raw({ type: '*/*', limit: '10mb' }));
 
 // Set up our passport authentication middleware
 passport.use(authenticate.strategy());

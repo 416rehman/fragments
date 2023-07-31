@@ -7,9 +7,11 @@ const {
   createSuccessResponse,
   createErrorResponse,
 } = require("../../../response");
+const crypto = require("crypto");
 
 module.exports = async (req, res) => {
-  if (await db.delete(req.params.id, req.user)) {
+  const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
+  if (await db.delete(req.params.id, ownerId)) {
     return res.status(200).send(createSuccessResponse());
   }
 

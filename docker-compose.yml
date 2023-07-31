@@ -22,8 +22,10 @@ services:
     environment:
       # Our API will be running on http://localhost:8080
       - API_URL=http://localhost:8080
-      # Use Basic Auth (for running tests, CI)
-      - HTPASSWD_FILE=tests/.htpasswd
+      # AUTHENTICATION
+#      - HTPASSWD_FILE=tests/.htpasswd
+      - AWS_COGNITO_POOL_ID=us-east-1_UrJMfuo8a
+      - AWS_COGNITO_CLIENT_ID=71u3503jod2v1eejtjkfh89459
       # Use the LOG_LEVEL set in the host environment, or default to info
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - AWS_REGION=us-east-1
@@ -32,11 +34,11 @@ services:
       - AWS_S3_ENDPOINT_URL=http://localstack:4566
       # Use the DynamoDB local endpoint vs. AWS for DynamoDB AWS SDK clients.
       - AWS_DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+      - AWS_DYNAMODB_TABLE_NAME=${AWS_DYNAMODB_TABLE_NAME:-fragments}
       # This S3 bucket and DynamoDB table need to get created first, see
       # local-aws-setup.sh. We'll default to 'fragments' as the name, unless
       # something else is defined in the env.
       - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME:-fragments}
-      - AWS_DYNAMODB_TABLE_NAME=${AWS_DYNAMODB_TABLE_NAME:-fragments}
       # AWS credentials for the localstack container
       - AWS_ACCESS_KEY_ID=ASIA2R6K52VJMVIOA424
       - AWS_SECRET_ACCESS_KEY=W1UAnao4fVP3sf6zOWIwuW+1bl66RhBG1fIcxteH
@@ -54,7 +56,7 @@ services:
       - '8000:8000'
     # Run the database in memory, see:
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.UsageNotes.html
-    command: [ '-jar', 'DynamoDBLocal.jar', '-inMemory' ]
+    command: [ '-jar', 'DynamoDBLocal.jar', '-inMemory', '-sharedDb' ]
     # LocalStack for S3, see https://docs.localstack.cloud/get-started/#docker-compose
     # Interact via awscli-local, see https://docs.localstack.cloud/integrations/aws-cli/#installation
   localstack:

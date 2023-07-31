@@ -7,12 +7,14 @@ const {
     createSuccessResponse,
     createErrorResponse,
 } = require("../../../response");
+const crypto = require("crypto");
 
 module.exports = async (req, res) => {
     const id = req.params.id;
+    const ownerId = crypto.createHash("sha256").update(req.user).digest("hex")
     let fragment
     try {
-        fragment = await db.get(id, req.user, true);
+        fragment = await db.get(id, ownerId, true);
     } catch (err) {
         return res.status(404).send(createErrorResponse(404, "Fragment not found"));
     }
@@ -39,7 +41,7 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const updatedFragment = await db.update(id, req.user, binaryData);
+        const updatedFragment = await db.update(id, ownerId, binaryData);
         if (!updatedFragment) {
             //Server error
             return res.status(500).send(createErrorResponse(500, "Failed to update fragment"));
